@@ -19,3 +19,29 @@ export const getTodo = async (req: Request, res: Response) => {
         }
     })
 }
+
+export const addTodo = async (req: Request, res: Response): Promise<void> => {
+    const body: Pick<Todo, 'title' | 'status'> = req.body
+
+    if (!body.title || !body.status) {
+        req.status(401).json({
+            status: 401,
+            errorMessage: `ValidationError: Todo validation failed:title:${body.title}, status ${body.status}`
+        })
+        return
+    }
+
+    const newTodoModel = new TodoModel({
+        title: body.title,
+        status: body.status
+    })
+
+    const newTodo = await newTodoModel.save()
+    const updatedAllTodosAfterSave = await TodoModel.find()
+
+    req.status(201).json({
+        message: 'Todo succesfully added!',
+        addedTodo: newTodo,
+        allTodosAfterAddition: updatedAllTodosAfterSave
+    })
+}
