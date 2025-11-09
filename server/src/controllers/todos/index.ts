@@ -1,3 +1,4 @@
+import { updateTodo } from './index';
 import { Request, Response } from "express";
 import { Todo } from "../../types/todo";
 import { TodoModel } from "../../models/todo"
@@ -44,4 +45,42 @@ export const addTodo = async (req: Request, res: Response): Promise<void> => {
         addedTodo: newTodo,
         allTodosAfterAddition: updatedAllTodosAfterSave
     })
+}
+
+export const updateTodo = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const {
+        params: { id },
+        body
+    } = req
+
+    if (!body.title || !body.status || !id) {
+        res.status(401).json({
+            status: 401,
+            errorMessage: `ValidationError:_id or required body properties is no defined.`
+        })
+        return
+    }
+
+    const updatedTodo = await TodoModel.findByIdAndUpdate({ _id: id }, body)
+    const updatedAllTodosAfterUpdate = await TodoModel.find()
+
+    if (!updatedTodo) {
+        res
+            .status(501)
+            .json({
+                status: 501,
+                errorMessage: `Edit todo failed. Not implemented.`
+            })
+        return
+    }
+    res
+        .status(200)
+        .json({
+            message: `Todo succesfully edited.`,
+            updatedTodo,
+            todos: updatedAllTodosAfterUpdate
+        })
 }
