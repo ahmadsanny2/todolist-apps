@@ -1,4 +1,4 @@
-import { updateTodo } from './index';
+import { updateTodo, removeTodo } from './index';
 import { Request, Response } from "express";
 import { Todo } from "../../types/todo";
 import { TodoModel } from "../../models/todo"
@@ -84,3 +84,34 @@ export const updateTodo = async (
             todos: updatedAllTodosAfterUpdate
         })
 }
+
+export const removeTodo = async (req: Request, res: Response): Promise<void> => {
+    const { params: { id } } = req
+    if (!id) {
+        res.status(401).json({
+            status: 401,
+            errorMessage: `ValidationError: Params_id is not defined.`
+        })
+
+        return
+    }
+
+    const removeTodo = await TodoModel.findByIdAndRemove(id)
+    const updateAllAfterRemove = await TodoModel.find()
+
+    if (!removeTodo) {
+        res.status(501).json({
+            status: 501,
+            errorMessage: "Remove todo failed. Not implemented."
+        })
+
+        return
+    }
+
+    res.status(200).json({
+        message: "Todo successfully removed.",
+        removeTodo,
+        todos: updateAllAfterRemove
+    })
+}
+
